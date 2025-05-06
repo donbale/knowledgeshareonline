@@ -77,7 +77,7 @@ export default function BrowseBooks({ user }) {
         requester_class
       };
 
-      const functionBaseUrl = process.env.REACT_APP_SUPABASE_FUNCTION_URL;
+      const functionBaseUrl = process.env.REACT_APP_SUPABASE_URL;
 if (!functionBaseUrl) {
   throw new Error('Supabase Function URL is not set in environment variables.');
 }
