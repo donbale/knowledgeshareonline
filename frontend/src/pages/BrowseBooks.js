@@ -77,7 +77,11 @@ export default function BrowseBooks({ user }) {
         requester_class
       };
 
-      const res = await fetch('https://osvcnsgtpznppyeynity.supabase.co/functions/v1/send_borrow_request_email', {
+      const functionBaseUrl = process.env.REACT_APP_SUPABASE_FUNCTION_URL;
+if (!functionBaseUrl) {
+  throw new Error('Supabase Function URL is not set in environment variables.');
+}
+const res = await fetch(`${functionBaseUrl}/functions/v1/send_borrow_request_email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
