@@ -1,0 +1,31 @@
+/* If using CRA and image is in src/assets, use require in JS import, not CSS. 
+   If in public/assets, use absolute path. */
+
+   body {
+    /* 1. Gradient mask fading to white 2. Your background image */
+    background-image:
+      linear-gradient(
+        to bottom,
+        rgba(255,255,255,0) 60%,
+        rgba(255,255,255,1) 100%
+      ),
+      url('/assets/library_interior.png');
+  
+    /* ensure both layers cover and stay fixed */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center center;
+  
+    /* the “base” color that shows once the gradient is fully opaque */
+    background-color: white;
+  
+    min-height: 100vh;
+    width: 100vw;
+  }
+  
+  html {
+    min-height: 100vh;
+    width: 100vw;
+  }
+  
