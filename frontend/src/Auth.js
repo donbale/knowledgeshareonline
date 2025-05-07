@@ -13,6 +13,10 @@ import {
 } from '@chakra-ui/react';
 
 export default function Auth({ onAuth }) {
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -60,6 +64,51 @@ export default function Auth({ onAuth }) {
     );
   }
 
+  if (showReset) {
+    return (
+      <Box maxW="xs" mx="auto" mt={8} p={6} bg="white" borderRadius="lg" boxShadow="md">
+        <Heading size="md" color="teal.500" mb={4} textAlign="center">
+          Reset Password
+        </Heading>
+        <form
+          onSubmit={async e => {
+            e.preventDefault();
+            setResetLoading(true);
+            setResetMessage('');
+            const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
+            if (error) setResetMessage(error.message);
+            else setResetMessage('Password reset email sent! Check your inbox.');
+            setResetLoading(false);
+          }}
+        >
+          <VStack spacing={4}>
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              value={resetEmail}
+              onChange={e => setResetEmail(e.target.value)}
+              required
+              color="gray.700"
+              bg="gray.100"
+            />
+            {resetMessage && (
+              <Alert status={resetMessage.startsWith('Password reset email sent') ? 'success' : 'error'} fontSize="sm">
+                <AlertIcon />
+                {resetMessage}
+              </Alert>
+            )}
+            <Button colorScheme="teal" type="submit" isLoading={resetLoading} w="full">
+              Send Reset Email
+            </Button>
+            <Button variant="link" colorScheme="teal" onClick={() => setShowReset(false)} w="full">
+              Back to Login
+            </Button>
+          </VStack>
+        </form>
+      </Box>
+    );
+  }
+
   return (
     <Box maxW="xs" mx="auto" mt={8} p={6} bg="white" borderRadius="lg" boxShadow="md">
       <Heading size="md" color="teal.500" mb={4} textAlign="center">
@@ -100,6 +149,9 @@ export default function Auth({ onAuth }) {
             w="full"
           >
             {isSignUp ? 'Sign Up' : 'Log In'}
+          </Button>
+          <Button variant="link" colorScheme="teal" onClick={() => setShowReset(true)} w="full">
+            Forgot password?
           </Button>
           <Text fontSize="sm" color="gray.500">
             {isSignUp ? (
