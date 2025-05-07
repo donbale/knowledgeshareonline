@@ -118,16 +118,17 @@ export default function BookFlipCard({ book, isOwner, owner, onRequest, requesti
           )}
           {!isOwner && onRequest && (
             <Box mt={2} w="100%" textAlign="center">
-              <IconButton
-                aria-label={book.status === 'borrowed' ? 'Not Available' : 'Request to Borrow'}
-                icon={requesting ? <Spinner size="xs" /> : <ArrowForwardIcon />} // You can swap for another icon if you prefer
+              <Button
                 colorScheme="teal"
                 size="sm"
-                variant="ghost"
+                variant="solid"
+                isLoading={requesting}
                 onClick={e => { e.stopPropagation(); onRequest(book); }}
                 isDisabled={book.status === 'borrowed' || requesting}
-                title={book.status === 'borrowed' ? 'Not Available' : 'Request to Borrow'}
-              />
+                title={book.status === 'borrowed' ? 'Not Available' : 'Borrow'}
+              >
+                Borrow
+              </Button>
             </Box>
           )} 
         </Box>
