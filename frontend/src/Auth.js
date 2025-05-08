@@ -17,6 +17,17 @@ export default function Auth({ onAuth }) {
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordLoading, setNewPasswordLoading] = useState(false);
+  const [newPasswordMessage, setNewPasswordMessage] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('type') === 'recovery') {
+      setRecoveryMode(true);
+    }
+  }, []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -46,6 +57,55 @@ export default function Auth({ onAuth }) {
       onAuth();
     }
     setLoading(false);
+  }
+
+  if (recoveryMode) {
+    return (
+      <Box maxW="xs" mx="auto" mt={8} p={6} bg="white" borderRadius="lg" boxShadow="md">
+        <Heading size="md" color="teal.500" mb={4} textAlign="center">
+          Set New Password
+        </Heading>
+        <form
+          onSubmit={async e => {
+            e.preventDefault();
+            setNewPasswordLoading(true);
+            setNewPasswordMessage('');
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            if (error) {
+              setNewPasswordMessage(error.message);
+            } else {
+              setNewPasswordMessage('Password updated! You can now log in with your new password.');
+              setTimeout(() => {
+                setRecoveryMode(false);
+                window.location.href = window.location.pathname; // Remove recovery params
+              }, 2500);
+            }
+            setNewPasswordLoading(false);
+          }}
+        >
+          <VStack spacing={4}>
+            <Input
+              type="password"
+              placeholder="Enter new password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              required
+              color="gray.700"
+              bg="gray.100"
+            />
+            {newPasswordMessage && (
+              <Alert status={newPasswordMessage.startsWith('Password updated') ? 'success' : 'error'} fontSize="sm">
+                <AlertIcon />
+                {newPasswordMessage}
+              </Alert>
+            )}
+            <Button colorScheme="teal" type="submit" isLoading={newPasswordLoading} w="full">
+              Set Password
+            </Button>
+          </VStack>
+        </form>
+      </Box>
+    );
   }
 
   if (pendingVerification) {
