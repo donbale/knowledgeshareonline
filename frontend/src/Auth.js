@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import {
   Box,
@@ -22,11 +22,27 @@ export default function Auth({ onAuth }) {
   const [newPasswordLoading, setNewPasswordLoading] = useState(false);
   const [newPasswordMessage, setNewPasswordMessage] = useState('');
 
+  // Handle password recovery flow
   useEffect(() => {
+    // Check URL for recovery params
     const params = new URLSearchParams(window.location.search);
     if (params.get('type') === 'recovery') {
       setRecoveryMode(true);
+      // Clear the URL to prevent issues on refresh
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
+
+    // Listen for auth state changes (including password recovery)
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Force the user to reset their password
+        setRecoveryMode(true);
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -70,37 +86,76 @@ export default function Auth({ onAuth }) {
             e.preventDefault();
             setNewPasswordLoading(true);
             setNewPasswordMessage('');
-            const { error } = await supabase.auth.updateUser({ password: newPassword });
-            if (error) {
-              setNewPasswordMessage(error.message);
-            } else {
-              setNewPasswordMessage('Password updated! You can now log in with your new password.');
+            
+            try {
+              // First update the password
+              const { error: updateError } = await supabase.auth.updateUser({
+                password: newPassword
+              });
+
+              if (updateError) throw updateError;
+
+              // Sign out the user after password change for security
+              await supabase.auth.signOut();
+              
+              setNewPasswordMessage('Password updated! Please log in with your new password.');
+              
+              // Redirect to login after a short delay
               setTimeout(() => {
                 setRecoveryMode(false);
-                window.location.href = window.location.pathname; // Remove recovery params
-              }, 2500);
+                // Clear any auth state and redirect to login
+                window.location.href = '/';
+              }, 2000);
+              
+            } catch (error) {
+              setNewPasswordMessage(error.message || 'An error occurred while updating your password');
+            } finally {
+              setNewPasswordLoading(false);
             }
-            setNewPasswordLoading(false);
           }}
         >
           <VStack spacing={4}>
+            <Text fontSize="sm" color="gray.600" mb={2}>
+              Please enter a new password for your account.
+            </Text>
             <Input
               type="password"
               placeholder="Enter new password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
               required
+              minLength={6}
               color="gray.700"
               bg="gray.100"
             />
             {newPasswordMessage && (
-              <Alert status={newPasswordMessage.startsWith('Password updated') ? 'success' : 'error'} fontSize="sm">
+              <Alert 
+                status={newPasswordMessage.includes('updated') ? 'success' : 'error'} 
+                fontSize="sm"
+                borderRadius="md"
+              >
                 <AlertIcon />
                 {newPasswordMessage}
               </Alert>
             )}
-            <Button colorScheme="teal" type="submit" isLoading={newPasswordLoading} w="full">
-              Set Password
+            <Button 
+              colorScheme="teal" 
+              type="submit" 
+              isLoading={newPasswordLoading} 
+              w="full"
+              mt={2}
+            >
+              Set New Password
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                supabase.auth.signOut();
+                setRecoveryMode(false);
+              }} 
+              w="full"
+            >
+              Back to Login
             </Button>
           </VStack>
         </form>
