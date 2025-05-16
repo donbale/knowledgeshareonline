@@ -19,8 +19,18 @@ Do not include any extra fields or text. Only output valid JSON.`;
 
 async function fetchOpenLibraryCover(title, author) {
   try {
-    const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}${author ? `&author=${encodeURIComponent(author)}` : ''}`;
-    const res = await fetch(url);
+    // Using a CORS proxy
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+    const targetUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}${author ? `&author=${encodeURIComponent(author)}` : ''}`;
+    
+    const res = await fetch(proxyUrl + targetUrl, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'  // Some proxies require this
+      }
+    });
+    
+    if (!res.ok) throw new Error('Failed to fetch from OpenLibrary');
+    
     const data = await res.json();
     if (data.docs && data.docs.length > 0) {
       const doc = data.docs[0];
@@ -28,8 +38,8 @@ async function fetchOpenLibraryCover(title, author) {
         return `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`;
       }
     }
-  } catch {
-    // Ignore errors, fallback to blank
+  } catch (error) {
+    console.error('Error fetching cover:', error);
   }
   return '';
 }
