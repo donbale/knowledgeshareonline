@@ -6,7 +6,7 @@ const genres = [
   '', 'Adventure', 'Fantasy', 'Mystery', 'Science Fiction', 'Non-fiction', 'Comics', 'Other'
 ];
 
-export default function BookForm({ onBookAdded }) {
+export default function BookForm({ onBookAdded, user }) {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [genre, setGenre] = useState('');
@@ -19,7 +19,12 @@ export default function BookForm({ onBookAdded }) {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.from('books').insert({
-      title, author, genre, synopsis, cover_url: coverUrl
+      title, 
+      author, 
+      genre, 
+      synopsis, 
+      cover_url: coverUrl,
+      owner_id: user.id  // Add the current user's ID
     });
     setLoading(false);
     if (error) {
