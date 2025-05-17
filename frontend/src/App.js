@@ -86,7 +86,7 @@ function App() {
               <Routes>
                 <Route path="/complete-profile" element={<CompleteProfile user={user} />} />
                 <Route path="/" element={<Home user={user} />} />
-                <Route path="/add" element={<AddBook />} />
+                <Route path="/add" element={<AddBook user={user} />} />
                 <Route path="/import" element={<BulkImport user={user} />} />
                 <Route path="/browse" element={<BrowseBooks user={user} />} />
                 <Route path="/borrowed" element={<BorrowedBooks user={user} />} />
